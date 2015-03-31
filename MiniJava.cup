@@ -1,0 +1,360 @@
+/* imports and packages */
+import java_cup.runtime.*;
+import syntaxtree.*;
+
+
+/* user code */
+parser code{:
+public void syntax_error(Symbol s){ 
+    System.err.println("Compiler has detected a syntax error at line " + s.left + " column " + s.right); 
+    System.err.println("Symbol is " + s.value);
+}
+:}
+/* symbol lists */
+
+/* terminals */
+terminal                    PLUS;
+terminal                    MINUS;
+terminal                    TIMES;
+terminal                    EQUALS;
+terminal                    AND;
+terminal                    LESS_THAN;
+terminal                    NOT;
+terminal                    CLASS, ELSE, EXTENDS, LENGTH, MAIN, NEW, PUBLIC, RETURN, STATIC, STRING, VOID, WHILE;
+terminal                    INT;
+terminal                    BOOLEAN;
+terminal                    IF;
+terminal                    PRINT;
+terminal                    THIS;
+terminal                    TRUE;
+terminal                    FALSE;
+terminal                    LPAREN, RPAREN, LBRACK, RBRACK, LCURLY, RCURLY, COMMA, DOT, SEMICOLON;
+terminal Integer            INTEGER_LITERAL;
+terminal String             IDENTIFIER;
+
+
+/* non terminals */
+non terminal Program            program;
+non terminal MainClass          mainClass;
+non terminal ClassDecl          classDecl;
+non terminal ClassDeclSimple    classDeclSim;
+non terminal ClassDeclExtends   classDeclExt;
+non terminal ClassDeclList      classDeclList;
+non terminal Statement          statement;
+non terminal StatementList      statementList;
+non terminal VarDecl            varDecl;
+non terminal VarDeclList        varDeclList;
+non terminal MethodDecl         methodDecl;
+non terminal MethodDeclList     methodDeclList;
+non terminal Type               type;
+non terminal FormalList         formalList, formalRest;
+non terminal Formal             formal;
+non terminal Exp                exp;
+non terminal ExpList            expList, expRest;
+non terminal IntArrayType       intArray;
+non terminal Identifier         iden;
+non terminal IdentifierType     idType;
+non terminal IdentifierExp      idExp;
+non terminal Assign             assign;
+non terminal ArrayAssign        arrAssign;
+non terminal Print              print;
+non terminal While              while;
+non terminal If                 if;
+non terminal Plus               plus;
+non terminal Minus              minus;
+non terminal Times              times;
+non terminal And                and;
+non terminal LessThan           less_than;
+non terminal ArrayLookup        arrayLookup;
+non terminal ArrayLength        arrayLength;
+non terminal Call               call;
+non terminal NewArray           newArray;
+non terminal NewObject          newObj;
+non terminal Not                not;
+non terminal Block              block;
+
+precedence left                 AND;
+precedence left                 LESS_THAN;
+precedence left                 PLUS, MINUS;
+precedence left                 TIMES;
+precedence right                NOT;
+
+/* grammar */
+start with program;
+
+
+
+program                 ::= mainClass:mc classDeclList:cdl
+                            {: RESULT = new Program(mc, cdl); :}
+                            ;
+                        
+mainClass               ::= CLASS iden:id1 LCURLY PUBLIC STATIC VOID MAIN LPAREN STRING LBRACK RBRACK iden:id2 RPAREN LCURLY statement:st RCURLY RCURLY
+                            {: RESULT = new MainClass(id1, id2, st); :}
+                            ;
+
+classDeclList           ::= classDecl:cd classDeclList:cdl
+                            {: if(cdl == null) cdl = new ClassDeclList();
+                               cdl.addElement(cd);
+                               RESULT = cdl;
+                            :}
+                            |
+                            {: RESULT = new ClassDeclList(); :}
+                            ;
+                            
+classDecl               ::= classDeclSim:cds
+                            {: RESULT = cds; :}
+                            |
+                            classDeclExt:cde
+                            {: RESULT = cde; :}
+                            ;
+
+classDeclSim            ::= CLASS iden:id LCURLY varDeclList:vdl methodDeclList:mdl RCURLY
+                            {: RESULT = new ClassDeclSimple(id, vdl, mdl); :}
+                            ;
+                            
+classDeclExt            ::= CLASS iden:id1 EXTENDS iden:id2 LCURLY varDeclList:vdl methodDeclList:mdl RCURLY
+                            {: RESULT = new ClassDeclExtends(id1, id2, vdl, mdl); :}
+                            ;
+
+varDeclList             ::= varDeclList:vdl varDecl:vd
+                            {: if(vdl == null) vdl = new VarDeclList();
+                               vdl.addElement(vd);
+                               RESULT = vdl;
+                            :}
+                            |
+                            {: RESULT = new VarDeclList(); :}
+                            ;
+                            
+varDecl                 ::= type:t iden:id SEMICOLON
+                            {: RESULT = new VarDecl(t, id); :}
+                            ;
+
+methodDeclList          ::= methodDecl:md methodDeclList:mdl
+                            {: if(mdl == null) mdl = new MethodDeclList();
+                               mdl.addElement(md);
+                               RESULT = mdl;
+                            :}
+                            |
+                            {: RESULT = new MethodDeclList(); :}
+                            ;
+                            
+methodDecl              ::= PUBLIC type:t iden:id LPAREN formalList:fl RPAREN LCURLY varDeclList:vdl statementList:stl RETURN exp:ex SEMICOLON RCURLY
+                            {: RESULT = new MethodDecl(t, id, fl, vdl, stl, ex); :}
+                            ;
+                            
+formalList              ::= formalRest:fr
+                            {: RESULT = fr; :}
+                            |
+                            {: RESULT = new FormalList(); :}
+                            ;
+                            
+formalRest              ::= formal:f COMMA formalRest:fr
+                            {: if(fr == null) fr = new FormalList();
+                               fr.addElement(f);
+                               RESULT = fr;
+                            :}
+                            |
+                            formal:f
+                            {: if(RESULT == null) RESULT = new FormalList();
+                               RESULT.addElement(f);
+                            :}
+                            ;
+                            
+formal                  ::= type:t iden:i
+                            {: RESULT = new Formal(t, i); :}
+                            ;
+
+type                    ::= intArray:ia
+                            {: RESULT = ia; :}
+                            |
+                            BOOLEAN
+                            {: RESULT = new BooleanType(); :}
+                            |
+                            INT
+                            {: RESULT = new IntegerType(); :}
+                            |
+                            idType:idt
+                            {: RESULT = idt; :}
+                            ;
+
+intArray                ::= INT LBRACK RBRACK
+                            {: RESULT = new IntArrayType(); :}
+                            ;
+                            
+idType                  ::= IDENTIFIER:idt
+                            {: RESULT = new IdentifierType(idt); :}
+                            ;
+
+statement               ::= block:b
+                            {: RESULT = b; :}
+                            |
+                            if:i
+                            {: RESULT = i; :}
+                            |
+                            while:w
+                            {: RESULT = w; :}
+                            |
+                            print:pr
+                            {: RESULT = pr; :}
+                            |
+                            assign:a
+                            {: RESULT = a; :}
+                            |
+                            arrAssign:aa
+                            {: RESULT = aa; :}
+                            ;
+
+block                   ::= LCURLY statementList:stl RCURLY
+                            {: RESULT = new Block(stl); :}
+                            ;
+                            
+statementList           ::= statement:st statementList:stl
+                            {: if(stl == null) stl = new StatementList();
+                               stl.addElement(st);
+                               RESULT = stl;
+                            :}
+                            |
+                            {: RESULT = new StatementList(); :}
+                            ;
+
+if                      ::= IF LPAREN exp:ex RPAREN statement:st1 ELSE statement:st2
+                            {: RESULT = new If(ex, st1, st2); :}
+                            ;
+
+while                   ::= WHILE LPAREN exp:ex RPAREN statement:st
+                            {: RESULT = new While(ex, st); :}
+                            ;
+                            
+print                   ::= PRINT LPAREN exp:ex RPAREN SEMICOLON
+                            {: RESULT = new Print(ex); :}
+                            ;
+                            
+assign                  ::= iden:id EQUALS exp:ex SEMICOLON
+                            {: RESULT = new Assign(id, ex); :}
+                            ;
+                            
+arrAssign               ::= iden:id LBRACK exp:ex1 RBRACK EQUALS exp:ex2 SEMICOLON
+                            {: RESULT = new ArrayAssign(id, ex1, ex2); :}
+                            ;
+                            
+exp                     ::= plus:p
+                            {: RESULT = p; :}
+                            |
+                            minus:m
+                            {: RESULT = m; :}
+                            |
+                            times:t
+                            {: RESULT = t; :}
+                            |
+                            and:a
+                            {: RESULT = a; :}
+                            |
+                            less_than:lt
+                            {: RESULT = lt; :}
+                            |
+                            arrayLookup:alo
+                            {: RESULT = alo; :}
+                            |
+                            arrayLength:ale
+                            {: RESULT = ale; :}
+                            |
+                            call:c
+                            {: RESULT = c; :}
+                            |
+                            INTEGER_LITERAL:il
+                            {: RESULT = new IntegerLiteral(il); :}
+                            |
+                            TRUE
+                            {: RESULT = new True(); :}
+                            |
+                            FALSE
+                            {: RESULT = new False(); :}
+                            |
+                            idExp:ide
+                            {: RESULT = ide; :}
+                            |
+                            THIS
+                            {: RESULT = new This(); :}
+                            |
+                            newArray:na
+                            {: RESULT = na; :}
+                            |
+                            newObj:no
+                            {: RESULT = no; :}
+                            |
+                            not:n
+                            {: RESULT = n; :}
+                            |
+                            LPAREN exp:ex RPAREN
+                            {: RESULT = ex; :}
+                            ;
+
+plus                    ::= exp:ex1 PLUS exp:ex2
+                            {: RESULT = new Plus(ex1, ex2); :}
+                            ;
+
+minus                   ::= exp:ex1 MINUS exp:ex2
+                            {: RESULT = new Minus(ex1, ex2); :}
+                            ;                            
+
+times                   ::= exp:ex1 TIMES exp:ex2
+                            {: RESULT = new Times(ex1, ex2); :}
+                            ;
+
+and                     ::= exp:ex1 AND exp:ex2
+                            {: RESULT = new And(ex1, ex2); :}
+                            ;
+
+less_than               ::= exp:ex1 LESS_THAN exp:ex2
+                            {: RESULT = new LessThan(ex1, ex2); :}
+                            ;
+
+arrayLookup             ::= exp:ex1 LBRACK exp:ex2 RBRACK
+                            {: RESULT = new ArrayLookup(ex1, ex2); :}
+                            ;
+                            
+arrayLength             ::= exp:ex DOT LENGTH
+                            {: RESULT = new ArrayLength(ex); :}
+                            ;
+                            
+call                    ::= exp:ex DOT iden:i LPAREN expList:exl RPAREN
+                            {: RESULT = new Call(ex, i, exl); :}
+                            ;
+                            
+idExp                   ::= IDENTIFIER:ide
+                            {: RESULT = new IdentifierExp(ide); :}
+                            ;
+
+newArray                ::= NEW INT LBRACK exp:ex RBRACK
+                            {: RESULT = new NewArray(ex); :}
+                            ;
+                           
+newObj                  ::= NEW iden:i LPAREN RPAREN
+                            {: RESULT = new NewObject(i); :}
+                            ;
+                            
+not                     ::= NOT exp:ex
+                            {: RESULT = new Not(ex); :}
+                            ;
+                            
+expList                 ::= expRest:exr
+                            {: RESULT = exr; :}
+                            |
+                            {: RESULT = new ExpList(); :}
+                            ;
+                            
+expRest                 ::= exp:ex COMMA expRest:exr
+                            {: if(exr == null) exr = new ExpList();
+                               exr.addElement(ex);
+                               RESULT = exr;
+                            :}
+                            |
+                            exp:ex
+                            {: if(RESULT == null) RESULT = new ExpList();
+                               RESULT.addElement(ex);
+                            :}
+                            ;
+                            
+iden                    ::= IDENTIFIER:id
+                            {: RESULT = new Identifier(id); :}
+                            ;

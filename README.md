@@ -1,1 +1,0 @@
-# MiniJavaCompilerCS1622

@@ -21,9 +21,14 @@ public class MiniJavaDriver{
             parse_tree = parser.parse();
             Program root = (Program) parse_tree.value;
             root.accept(new PrettyPrintVisitor());
+			BuildSymbolTableVisitor bstv = new BuildSymbolTableVisitor();
+			root.accept(bstv);
+			Tree symbolTable = bstv.getSymbolTable();
+			root.accept(new TypeCheckVisitor(), symbolTable);
         }
         catch(IOException e){
             System.err.println("Unable to open file: " + args[0]);
+			e.printStackTrace(System.err);
         }
         catch(Exception e){
             e.printStackTrace(System.err);

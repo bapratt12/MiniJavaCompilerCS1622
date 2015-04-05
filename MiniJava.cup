@@ -3,14 +3,13 @@ import java_cup.runtime.*;
 import syntaxtree.*;
 
 
-/* user code */
 parser code{:
-public void syntax_error(Symbol s){ 
-    System.err.println("Compiler has detected a syntax error at line " + s.left + " column " + s.right); 
-    System.err.println("Symbol is " + s.value);
+public void syntax_error(Symbol s){
+	String err_message = "Parser has detected a syntax error at line " + s.left + " column " + s.right;
+	System.err.println(err_message); 
 }
 :}
-/* symbol lists */
+
 
 /* terminals */
 terminal                    PLUS;
@@ -92,7 +91,7 @@ mainClass               ::= CLASS iden:id1 LCURLY PUBLIC STATIC VOID MAIN LPAREN
                             {: RESULT = new MainClass(id1, id2, st); :}
                             ;
 
-classDeclList           ::= classDecl:cd classDeclList:cdl
+classDeclList           ::= classDeclList:cdl classDecl:cd 
                             {: if(cdl == null) cdl = new ClassDeclList();
                                cdl.addElement(cd);
                                RESULT = cdl;
@@ -106,6 +105,9 @@ classDecl               ::= classDeclSim:cds
                             |
                             classDeclExt:cde
                             {: RESULT = cde; :}
+							|
+							error RCURLY
+							{: parser.report_error("Class Decl", null); :}
                             ;
 
 classDeclSim            ::= CLASS iden:id LCURLY varDeclList:vdl methodDeclList:mdl RCURLY
@@ -127,12 +129,19 @@ varDeclList             ::= varDeclList:vdl varDecl:vd
                             
 varDecl                 ::= type:t iden:id SEMICOLON
                             {: RESULT = new VarDecl(t, id); :}
+							|
+							error SEMICOLON
+							{: parser.report_error("Var Decl", null); :}
                             ;
 
 methodDeclList          ::= methodDecl:md methodDeclList:mdl
                             {: if(mdl == null) mdl = new MethodDeclList();
-                               mdl.addElement(md);
-                               RESULT = mdl;
+							   MethodDeclList list = new MethodDeclList();
+							   list.addElement(md);
+							   for(int k = 0; k < mdl.size(); k++){
+									list.addElement(mdl.elementAt(k));
+							   }
+                               RESULT = list;
                             :}
                             |
                             {: RESULT = new MethodDeclList(); :}
@@ -140,15 +149,18 @@ methodDeclList          ::= methodDecl:md methodDeclList:mdl
                             
 methodDecl              ::= PUBLIC type:t iden:id LPAREN formalList:fl RPAREN LCURLY varDeclList:vdl statementList:stl RETURN exp:ex SEMICOLON RCURLY
                             {: RESULT = new MethodDecl(t, id, fl, vdl, stl, ex); :}
+							|
+							error RCURLY
+							{: parser.report_error("Method Decl", null); :}
                             ;
                             
 formalList              ::= formalRest:fr
                             {: RESULT = fr; :}
                             |
                             {: RESULT = new FormalList(); :}
-                            ;
+							;
                             
-formalRest              ::= formal:f COMMA formalRest:fr
+formalRest              ::= formalRest:fr COMMA formal:f
                             {: if(fr == null) fr = new FormalList();
                                fr.addElement(f);
                                RESULT = fr;
@@ -158,6 +170,9 @@ formalRest              ::= formal:f COMMA formalRest:fr
                             {: if(RESULT == null) RESULT = new FormalList();
                                RESULT.addElement(f);
                             :}
+							|
+							error
+							{: parser.report_error("Formal List", null); :}
                             ;
                             
 formal                  ::= type:t iden:i
@@ -202,6 +217,9 @@ statement               ::= block:b
                             |
                             arrAssign:aa
                             {: RESULT = aa; :}
+							|
+							error SEMICOLON
+							{: parser.report_error("Statement", null); :}
                             ;
 
 block                   ::= LCURLY statementList:stl RCURLY
@@ -210,8 +228,12 @@ block                   ::= LCURLY statementList:stl RCURLY
                             
 statementList           ::= statement:st statementList:stl
                             {: if(stl == null) stl = new StatementList();
-                               stl.addElement(st);
-                               RESULT = stl;
+                               StatementList list = new StatementList();
+							   list.addElement(st);
+							   for(int k = 0; k < stl.size(); k++){
+									list.addElement(stl.elementAt(k));
+							   }
+                               RESULT = list;
                             :}
                             |
                             {: RESULT = new StatementList(); :}
@@ -341,9 +363,9 @@ expList                 ::= expRest:exr
                             {: RESULT = exr; :}
                             |
                             {: RESULT = new ExpList(); :}
-                            ;
+							;
                             
-expRest                 ::= exp:ex COMMA expRest:exr
+expRest                 ::=  expRest:exr COMMA exp:ex
                             {: if(exr == null) exr = new ExpList();
                                exr.addElement(ex);
                                RESULT = exr;
@@ -353,6 +375,9 @@ expRest                 ::= exp:ex COMMA expRest:exr
                             {: if(RESULT == null) RESULT = new ExpList();
                                RESULT.addElement(ex);
                             :}
+							|
+							error
+							{: parser.report_error("Exp List", null); :}
                             ;
                             
 iden                    ::= IDENTIFIER:id

@@ -1,7 +1,7 @@
 JAVA=java
 JAVAC=javac -cp "java-cup-11a.jar;."
 JFLEX=jflex -d .
-CUP=$(JAVA) -jar java-cup-11a.jar -interface -parser MiniJavaParser
+CUP=$(JAVA) -jar java-cup-11a.jar -interface -expect 20 -parser MiniJavaParser
 
 all: MiniJavaDriver.java MiniJavaLexer.java MiniJavaParser.java
 	$(JAVAC) MiniJavaDriver.java

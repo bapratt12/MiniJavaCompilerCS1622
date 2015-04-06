@@ -19,11 +19,7 @@ javac -cp "java-cup-11a.jar;." MiniJavaDriver.java
 
 
 KNOWN BUGS:
-The only error I found was with distinguishing between negative numbers and subtraction with no spacing. For example
-4-1
-I can't find a way to determine if this is 4 minus 1 or a 4 followed by a -1.
-Standalone negative numbers will work, as will subtraction with spacing, so
-int i;
-i = -2;
-i = 4 - 1;
-will work.
+For error checking
+	All name/type checking is implemented except for method argument type/length
+	Tabs treated as 1 character, making line and character off in lines with tabs (tabs as spaces will not have this problem)
+	If a method is used in a class before it has been declared in the program, an "Unidentified identifier" error will be output even though the method exists

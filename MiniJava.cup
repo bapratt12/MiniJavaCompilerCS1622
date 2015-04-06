@@ -197,7 +197,7 @@ intArray                ::= INT LBRACK RBRACK
                             ;
                             
 idType                  ::= IDENTIFIER:idt
-                            {: RESULT = new IdentifierType(idt); :}
+                            {: RESULT = new IdentifierType(idt, idtleft, idtright); :}
                             ;
 
 statement               ::= block:b
@@ -284,19 +284,19 @@ exp                     ::= plus:p
                             {: RESULT = c; :}
                             |
                             INTEGER_LITERAL:il
-                            {: RESULT = new IntegerLiteral(il); :}
+                            {: RESULT = new IntegerLiteral(il, illeft, ilright); :}
                             |
-                            TRUE
-                            {: RESULT = new True(); :}
+                            TRUE:t
+                            {: RESULT = new True(tleft, tright); :}
                             |
-                            FALSE
-                            {: RESULT = new False(); :}
+                            FALSE:f
+                            {: RESULT = new False(fleft, fright); :}
                             |
                             idExp:ide
                             {: RESULT = ide; :}
                             |
-                            THIS
-                            {: RESULT = new This(); :}
+                            THIS:t
+                            {: RESULT = new This(tleft, tright); :}
                             |
                             newArray:na
                             {: RESULT = na; :}
@@ -344,7 +344,7 @@ call                    ::= exp:ex DOT iden:i LPAREN expList:exl RPAREN
                             ;
                             
 idExp                   ::= IDENTIFIER:ide
-                            {: RESULT = new IdentifierExp(ide); :}
+                            {: RESULT = new IdentifierExp(ide, ideleft, ideright); :}
                             ;
 
 newArray                ::= NEW INT LBRACK exp:ex RBRACK
@@ -381,5 +381,5 @@ expRest                 ::=  expRest:exr COMMA exp:ex
                             ;
                             
 iden                    ::= IDENTIFIER:id
-                            {: RESULT = new Identifier(id); :}
+                            {: RESULT = new Identifier(id, idleft, idright); :}
                             ;

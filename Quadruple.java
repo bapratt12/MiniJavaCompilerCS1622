@@ -22,41 +22,32 @@ public class Quadruple {
       this.result = r;
    }
 
+   private String findName(Object n) {
+      if(n instanceof IntegerLiteral) {
+         return ""+((IntegerLiteral)n).i;
+      } else if(n instanceof Identifier) {
+         return ((Identifier)n).s;
+      } else if(n instanceof IdentifierExp) {
+         return ((IdentifierExp)n).s;
+      } else {
+         return n.toString();
+      }
+   }
+
    public String toString() {
       String str = "";
+      String a1 = findName(arg1);
+      String a2 = findName(arg2);
+      String r = findName(result);
 
-      String a1, a2, r;
-
-      if(arg1 instanceof IntegerLiteral) {
-         a1 = Integer.toString(((IntegerLiteral)arg1).i);
-      } else if(arg1 instanceof IdentifierExp) {
-         a1 = ((IdentifierExp)arg1).s;
-      } else {
-         a1 = (String)arg1;
-      }
-
-      if(arg2 instanceof IntegerLiteral) {
-         a2 = Integer.toString(((IntegerLiteral)arg2).i);
-      } else if(arg2 instanceof IdentifierExp) {
-         a2 = ((IdentifierExp)arg2).s;
-      } else {
-         a2 = (String)arg2;
-      }
-
-      if(result instanceof Identifier) {
-         r = ((Identifier)result).s;
-      } else {
-         r = (String)result;
-      }
-
-      if(type == IRVisitor.ASSIGN) {
+      if(op.equals("&&") || op.equals("<") || op.equals("+") || op.equals("-") || op.equals("*")) {
          str = r + " := " + a1 + " " + op + " " + a2;
+      } else if(op.equals("CALL")) {
+         str = r + " := " + op + " " + a1 + ", " + a2;
+      } else if(op.equals("PARAM")) {
+         str = op + " " + r;
       }
 
       return str;
-
-      //return "{ " + op + " " + arg1 + " " + arg2 + " " + result + " }";
-
-      //return str;
    }
 }

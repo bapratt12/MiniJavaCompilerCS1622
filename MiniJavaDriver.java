@@ -25,7 +25,15 @@ public class MiniJavaDriver{
 			root.accept(bstv);
 			Tree symbolTable = bstv.getSymbolTable();
 			root.accept(new TypeCheckVisitor(), symbolTable);
-			root.accept(new IRVisitor());
+
+            // IRVIsitor
+            IRVisitor visitor = new IRVisitor();
+			root.accept(visitor);
+
+            // print IR
+            for(Quadruple q : visitor.IR) {
+                System.out.println(q);
+            }
         }
         catch(IOException e){
             System.err.println("Unable to open file: " + args[0]);

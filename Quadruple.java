@@ -42,6 +42,13 @@ public class Quadruple {
 
       if(op.equals("&&") || op.equals("<") || op.equals("+") || op.equals("-") || op.equals("*")) {
          str = r + " := " + a1 + " " + op + " " + a2;
+      } else if(op.equals("!")) {
+         str = r + " := " + op + " " + a1;
+      } else if(op.equals("NEW") || op.equals("length")) {
+         str = r + " := " + op + " " + a1;
+         if(a2.length() != 0) {
+            str += ", " + a2;
+         }
       } else if(op.equals("CALL")) {
          str = r + " := " + op + " " + a1 + ", " + a2;
       } else if(op.equals("PARAM")) {

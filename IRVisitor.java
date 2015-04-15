@@ -10,6 +10,8 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 
 import java_cup.runtime.Symbol;
 
@@ -29,6 +31,9 @@ public class IRVisitor implements Visitor {
    // intermediate representation
    public ArrayList<Quadruple> IR;
 
+   // labels
+   public Map<Integer, String> labels;
+
    // include 'this' as a param when calling from a non-static method
    private boolean inStatic = false;
 
@@ -36,6 +41,7 @@ public class IRVisitor implements Visitor {
    public IRVisitor() {
       tempVar = 0;
       IR = new ArrayList<Quadruple>();
+      labels = new HashMap<Integer, String>();
       clear();
    }
 
@@ -60,6 +66,7 @@ public class IRVisitor implements Visitor {
    // Statement s;
    public void visit(MainClass n) {
       System.out.println("mainclass");
+      labels.put(0, "main:");
       inStatic = true;
       n.i1.accept(this); n.i2.accept(this);
       n.s.accept(this);
@@ -113,6 +120,7 @@ public class IRVisitor implements Visitor {
       System.out.println("methoddecl");
       n.t.accept(this);
       n.i.accept(this);
+      labels.put(IR.size(), n.i.s+":");
       for(int i = n.fl.size()-1; i >= 0; i--) {
          n.fl.elementAt(i).accept(this);
       }
@@ -122,7 +130,17 @@ public class IRVisitor implements Visitor {
       for(int i = n.sl.size()-1; i >= 0; i--) {
          n.sl.elementAt(i).accept(this);
       }
-      n.e.accept(this);
+
+      // return value
+      if(n.e instanceof IdentifierExp || n.e instanceof IntegerLiteral
+         || n.e instanceof True || n.e instanceof False) {
+         IR.add(new Quadruple("RETURN", "", "", n.e));
+      } else {
+         int temp = tempVar;
+         quad = new Quadruple("", "", "", "t"+(tempVar++));
+         n.e.accept(this);
+         IR.add(new Quadruple("RETURN", "", "", "t"+temp));
+      }
    }
 
    // Type t;
@@ -177,30 +195,41 @@ public class IRVisitor implements Visitor {
    // Exp e;
    public void visit(Print n) {
       System.out.println("print");
-      n.e.accept(this);
+
+      if(n.e instanceof IntegerLiteral
+         || n.e instanceof True || n.e instanceof False) {
+         IR.add(new Quadruple("PARAM", "", "", n.e));
+      } else {
+         Quadruple q = new Quadruple("PARAM", "", "", "t"+tempVar);
+         quad = new Quadruple("", "", "", "t"+(tempVar++));
+         n.e.accept(this);
+         IR.add(q);
+      }
+      IR.add(new Quadruple("CALL", "print", "1", ""));
    }
 
    // Identifier i;
    // Exp e;
    public void visit(Assign n) {
       System.out.println("assign");
+
       quad = new Quadruple("", "", "", n.i);
-      n.e.accept(this);
+      if(n.e instanceof IdentifierExp || n.e instanceof IntegerLiteral 
+         || n.e instanceof True || n.e instanceof False) {
+         quad.op = ":=";
+         quad.arg1 = n.e;
+         IR.add(quad);
+      } else {
+         n.e.accept(this);
+      }
    }
 
    // Identifier i;
    // Exp e1,e2;
    public void visit(ArrayAssign n) {
       System.out.println("arrayassign");
-      n.i.accept(this);
-      n.e1.accept(this); n.e2.accept(this);
-   }
 
-   // Exp e1,e2;
-   public void visit(And n) {
-      System.out.println("and");
-      Quadruple q = quad;
-      q.op = "&&";
+      Quadruple q = new Quadruple("[]=", "", "", n.i);
 
       if(n.e1 instanceof IdentifierExp || n.e1 instanceof IntegerLiteral) {
          q.arg1 = n.e1;
@@ -211,6 +240,33 @@ public class IRVisitor implements Visitor {
       }
 
       if(n.e2 instanceof IdentifierExp || n.e2 instanceof IntegerLiteral) {
+         q.arg2 = n.e2;
+      } else {
+         q.arg2 = "t"+tempVar;
+         quad = new Quadruple("", "", "", "t"+(tempVar++));
+         n.e2.accept(this);
+      }
+
+      IR.add(q);
+   }
+
+   // Exp e1,e2;
+   public void visit(And n) {
+      System.out.println("and");
+      Quadruple q = quad;
+      q.op = "&&";
+
+      if(n.e1 instanceof IdentifierExp || n.e1 instanceof IntegerLiteral
+         || n.e1 instanceof True || n.e1 instanceof False) {
+         q.arg1 = n.e1;
+      } else {
+         q.arg1 = "t"+tempVar;
+         quad = new Quadruple("", "", "", "t"+(tempVar++));
+         n.e1.accept(this);
+      }
+
+      if(n.e2 instanceof IdentifierExp || n.e2 instanceof IntegerLiteral
+         || n.e2 instanceof True || n.e2 instanceof False) {
          q.arg2 = n.e2;
       } else {
          q.arg2 = "t"+tempVar;
@@ -324,7 +380,22 @@ public class IRVisitor implements Visitor {
    // Exp e1,e2;
    public void visit(ArrayLookup n) {
       System.out.println("arraylookup");
-      n.e1.accept(this); n.e2.accept(this);
+
+      Quadruple q = quad;
+      q.op = "=[]";
+      if(n.e1 instanceof IdentifierExp) {
+         q.arg1 = n.e1;
+      }
+
+      if(n.e2 instanceof IdentifierExp || n.e2 instanceof IntegerLiteral) {
+         q.arg2 = n.e2;
+      } else {
+         q.arg2 = "t"+tempVar;
+         quad = new Quadruple("", "", "", "t"+(tempVar++));
+         n.e2.accept(this);
+      }
+
+      IR.add(q);
    }
 
    // Exp e;
@@ -347,14 +418,21 @@ public class IRVisitor implements Visitor {
       q.arg1 = n.i;
 
       int t = 0;
-      if(n.e instanceof IdentifierExp && !inStatic) {
+      if(n.e instanceof IdentifierExp) {
          IR.add(new Quadruple("PARAM", "", "", n.e));
+         t = 1;
+      } else {
+         int temp = tempVar;
+         quad = new Quadruple("", "", "", "t"+(tempVar++));
+         n.e.accept(this);
+         IR.add(new Quadruple("PARAM", "", "", "t"+temp));
          t = 1;
       }
 
       for(int i = n.el.size()-1; i >= 0; i--) {
          Object exp = n.el.elementAt(i);
-         if(exp instanceof IntegerLiteral || exp instanceof IdentifierExp) {
+         if(n.e instanceof IdentifierExp || n.e instanceof IntegerLiteral 
+            || n.e instanceof True || n.e instanceof False) {
             IR.add(new Quadruple("PARAM", "", "", exp));
          } else {
             int temp = tempVar;
@@ -388,6 +466,9 @@ public class IRVisitor implements Visitor {
 
    public void visit(This n) {
       System.out.println("this");
+
+      quad.result = "THIS";
+      IR.add(quad);
    }
 
    // Exp e;
@@ -423,7 +504,8 @@ public class IRVisitor implements Visitor {
       Quadruple q = quad;
       q.op = "!";
 
-      if(n.e instanceof IdentifierExp || n.e instanceof IntegerLiteral) {
+      if(n.e instanceof IdentifierExp || n.e instanceof IntegerLiteral
+         || n.e instanceof True || n.e instanceof False) {
          q.arg1 = n.e;
       } else {
          q.arg1 = "t"+tempVar;
@@ -457,8 +539,12 @@ public class IRVisitor implements Visitor {
          root.accept(visitor);
 
          System.out.println("\n~~~~~~~~~IR~~~~~~~~~");
-         for(Quadruple q : visitor.IR) {
-            System.out.println(q);
+         for(int i = 0; i < visitor.IR.size(); i++) {
+            String label;
+            if((label = visitor.labels.get(i)) != null) {
+               System.out.println("\n" + label);
+            }
+            System.out.println(visitor.IR.get(i));
          }
 
       } catch (IOException e) {

@@ -29,6 +29,10 @@ public class Quadruple {
          return ((Identifier)n).s;
       } else if(n instanceof IdentifierExp) {
          return ((IdentifierExp)n).s;
+      } else if(n instanceof True) {
+         return "true";
+      } else if(n instanceof False) {
+         return "false";
       } else {
          return n.toString();
       }
@@ -40,7 +44,9 @@ public class Quadruple {
       String a2 = findName(arg2);
       String r = findName(result);
 
-      if(op.equals("&&") || op.equals("<") || op.equals("+") || op.equals("-") || op.equals("*")) {
+      if(op.equals(":=")) {
+         str = r + " := " + a1;
+      } else if(op.equals("&&") || op.equals("<") || op.equals("+") || op.equals("-") || op.equals("*")) {
          str = r + " := " + a1 + " " + op + " " + a2;
       } else if(op.equals("!")) {
          str = r + " := " + op + " " + a1;
@@ -50,9 +56,19 @@ public class Quadruple {
             str += ", " + a2;
          }
       } else if(op.equals("CALL")) {
-         str = r + " := " + op + " " + a1 + ", " + a2;
+         if(r != "") {
+            str = r + " := " + op + " " + a1 + ", " + a2;
+         } else {
+            str = op + " " + a1 + ", " + a2;
+         }
       } else if(op.equals("PARAM")) {
          str = op + " " + r;
+      } else if(op.equals("RETURN")) {
+         str = op + " " + r;
+      } else if(op.equals("=[]")) {
+         str = r + " := " + a1 + "[" + a2 + "]";
+      } else if(op.equals("[]=")) {
+         str = r + "[" + a1 + "] := " + a2;
       }
 
       return str;

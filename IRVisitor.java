@@ -57,7 +57,7 @@ public class IRVisitor implements Visitor {
    public void visit(Program n) {
       System.out.println("program");
       n.m.accept(this);
-      for(int i = n.cl.size()-1; i >= 0; i--) {
+      for(int i = 0; i < n.cl.size(); i++) {
          n.cl.elementAt(i).accept(this);
       }
    }
@@ -79,10 +79,10 @@ public class IRVisitor implements Visitor {
    public void visit(ClassDeclSimple n) {
       System.out.println("classdeclsimple");
       n.i.accept(this);
-      for(int i = n.vl.size()-1; i >= 0; i--) {
+      for(int i = 0; i < n.vl.size(); i++) {
          n.vl.elementAt(i).accept(this);
       }
-      for(int i = n.ml.size()-1; i >= 0; i--) {
+      for(int i = 0; i < n.ml.size(); i++) {
          n.ml.elementAt(i).accept(this);
       }
    }
@@ -94,10 +94,10 @@ public class IRVisitor implements Visitor {
    public void visit(ClassDeclExtends n) {
       System.out.println("classdeclextends");
       n.i.accept(this); n.j.accept(this);
-      for(int i = n.vl.size()-1; i >= 0; i--) {
+      for(int i = 0; i < n.vl.size(); i++) {
          n.vl.elementAt(i).accept(this);
       }
-      for(int i = n.ml.size()-1; i >= 0; i--) {
+      for(int i = 0; i < n.ml.size(); i++) {
          n.ml.elementAt(i).accept(this);
       }
    }
@@ -121,13 +121,13 @@ public class IRVisitor implements Visitor {
       n.t.accept(this);
       n.i.accept(this);
       labels.put(IR.size(), n.i.s+":");
-      for(int i = n.fl.size()-1; i >= 0; i--) {
+      for(int i = 0; i < n.fl.size(); i++) {
          n.fl.elementAt(i).accept(this);
       }
-      for(int i = n.vl.size()-1; i >= 0; i--) {
+      for(int i = 0; i < n.vl.size(); i++) {
          n.vl.elementAt(i).accept(this);
       }
-      for(int i = n.sl.size()-1; i >= 0; i--) {
+      for(int i = 0; i < n.sl.size(); i++) {
          n.sl.elementAt(i).accept(this);
       }
 
@@ -171,7 +171,7 @@ public class IRVisitor implements Visitor {
    // StatementList sl;
    public void visit(Block n) {
       System.out.println("block");
-      for(int i = n.sl.size()-1; i >= 0; i--) {
+      for(int i = 0; i < n.sl.size(); i++) {
          n.sl.elementAt(i).accept(this);
       }
    }
@@ -429,7 +429,7 @@ public class IRVisitor implements Visitor {
          t = 1;
       }
 
-      for(int i = n.el.size()-1; i >= 0; i--) {
+      for(int i = 0; i < n.el.size(); i++) {
          Object exp = n.el.elementAt(i);
          if(n.e instanceof IdentifierExp || n.e instanceof IntegerLiteral 
             || n.e instanceof True || n.e instanceof False) {

@@ -69,6 +69,10 @@ public class Quadruple {
          str = r + " := " + a1 + "[" + a2 + "]";
       } else if(op.equals("[]=")) {
          str = r + "[" + a1 + "] := " + a2;
+      } else if(op.equals("IFFALSE")) {
+         str = op + " " + a1 + " GOTO " + r;
+      } else if(op.equals("GOTO")) {
+         str = "GOTO " + r;
       }
 
       return str;

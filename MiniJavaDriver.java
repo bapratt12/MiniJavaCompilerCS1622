@@ -10,7 +10,7 @@ public class MiniJavaDriver{
 
     public static void main(String[] args){
         
-        if(args.length != 1){
+        if(args.length != 1 && args.length != 2){
             System.err.println("Usage: java MiniJavaDriver miniJava.java");
             System.exit(1);
         }
@@ -27,8 +27,13 @@ public class MiniJavaDriver{
 			root.accept(new TypeCheckVisitor(), symbolTable);
 
             // IRVIsitor
-            IRVisitor visitor = new IRVisitor();
-			root.accept(visitor);
+            boolean opt = false;
+            if(args.length > 1 && args[1].equals("-O1")) {
+                System.err.println("Optimizing");
+                opt = true;
+            }
+            IRVisitor visitor = new IRVisitor(opt);
+			visitor.start(root);
 
             // print IR
             System.out.println();

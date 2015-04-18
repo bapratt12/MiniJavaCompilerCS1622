@@ -192,8 +192,10 @@ public class IRVisitor implements Visitor {
       IR.add(new Quadruple("GOTO", "", "", labelTrue));
 
       labels.put(IR.size(), labelFalse);
+      IR.add(new Quadruple("LABEL", "", "", labelFalse+":"));
       n.s2.accept(this);
       labels.put(IR.size(), labelTrue);
+      IR.add(new Quadruple("LABEL", "", "", labelTrue+":"));
    }
 
    // Exp e;
@@ -201,6 +203,7 @@ public class IRVisitor implements Visitor {
    public void visit(While n) {
       String labelLoop = "L"+(labelVar++);
       labels.put(IR.size(), labelLoop);
+      IR.add(new Quadruple("LABEL", "", "", labelLoop+":"));
       Quadruple q;
       if(n.e instanceof IdentifierExp || n.e instanceof True || n.e instanceof False) {
          q = new Quadruple("IFFALSE", n.e, "", "");
@@ -218,6 +221,7 @@ public class IRVisitor implements Visitor {
 
       IR.add(new Quadruple("GOTO", "", "", labelLoop));
       labels.put(IR.size(), labelBreak);
+      IR.add(new Quadruple("LABEL", "", "", labelBreak+":"));
    }
 
    // Exp e;

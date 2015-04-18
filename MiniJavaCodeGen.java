@@ -87,14 +87,14 @@ public class MiniJavaCodeGen {
                 }
                 String result = q.arg1.toString();
                 if(!result.equals("_system_out_println") && !result.equals("_system_exit") && !result.equals("_new_object") && !result.equals("_new_array")){
-                    System.err.println("Scope should be " + result);
+                    //System.err.println("Scope should be " + result);
                     this.curScope = symbolTable.search(result.substring(0, result.length()), symbolTable.getRoot());
                     for(int k = 0; k < curScope.getParams().size(); k++){
                         curScope.getData().get(curScope.getParams().get(k)).add(args.get(k));
-                        System.err.println("Matching " + curScope.getParams().get(k) + " to " + args.get(k));
+                        //System.err.println("Matching " + curScope.getParams().get(k) + " to " + args.get(k));
                     }
-                    if(this.curScope == null) System.err.println("Scope is null");
-                    else System.err.println("Scope is " + curScope.getName());
+                    //if(this.curScope == null) System.err.println("Scope is null");
+                    //else System.err.println("Scope is " + curScope.getName());
                 }
                 argsCounter = 0;
             }
@@ -143,7 +143,7 @@ public class MiniJavaCodeGen {
                     IntegerLiteral il2 = (IntegerLiteral) q.arg2;
                     writer.println("li " + genRegs.get(regsCounter) + " " + il1.i);
                     writer.println("slti " + genRegs.get(regsCounter) + " " + genRegs.get(regsCounter) + " " + il2.i);
-                    System.out.println(q.result.toString());
+                    //System.err.println(q.result.toString());
                     Node node = checkOrAdd(q.result.toString());
                 }
                 else if(q.arg2 instanceof IntegerLiteral){
@@ -172,7 +172,7 @@ public class MiniJavaCodeGen {
                     IntegerLiteral il2 = (IntegerLiteral) q.arg2;
                     writer.println("li " + genRegs.get(regsCounter) + " " + il1.i);
                     writer.println("addi " + genRegs.get(regsCounter) + " " + genRegs.get(regsCounter) + " " + il2.i);
-                    System.out.println(q.result.toString());
+                    //System.err.println(q.result.toString());
                     Node node = checkOrAdd(q.result.toString());
                 }
                 else if(q.arg2 instanceof IntegerLiteral){

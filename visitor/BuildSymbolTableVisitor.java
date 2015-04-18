@@ -7,11 +7,12 @@ import java.util.ArrayList;
 
 public class BuildSymbolTableVisitor implements Visitor {
   
-  private HashMap<String, String> root = new HashMap<String,String>();
+  private HashMap<String, ArrayList<String>> root = new HashMap<String,ArrayList<String>>();
   private Tree symbolTable = new Tree(root);
   private Node currentNode;
   private String curIden = null;
   private String expStr = null;
+  private ArrayList<String> temp;
 	
   
   public Tree getSymbolTable(){
@@ -38,9 +39,13 @@ public class BuildSymbolTableVisitor implements Visitor {
   // Statement s;
   public void visit(MainClass n) {
     //add main and args ids to top level
-	currentNode.getData().put(n.i1.s, "class");
+    temp = new ArrayList<>();
+    temp.add("class");
+	currentNode.getData().put(n.i1.s, temp);
     n.i1.accept(this);
-	currentNode.getData().put(n.i1.s, "String[]");
+    temp = new ArrayList<>();
+    temp.add("String[]");
+	currentNode.getData().put(n.i1.s, temp);
     n.i2.accept(this);
 	
 	//create main level and traverse main statements in this level
@@ -60,7 +65,9 @@ public class BuildSymbolTableVisitor implements Visitor {
     if(currentNode.getData().containsKey(n.i.s)){
 		System.err.println("Multiply defined class identifier " + n.i.s + " at line " + n.i.line + ", character " + n.i.col);
 	}
-    currentNode.getData().put(n.i.s, "class");
+    temp = new ArrayList<>();
+    temp.add("class");
+    currentNode.getData().put(n.i.s, temp);
     n.i.accept(this);
 	
 	Node classNode = new Node(n.i.s, "class", currentNode);
@@ -77,7 +84,9 @@ public class BuildSymbolTableVisitor implements Visitor {
 			System.err.println("Multiply defined identifier " + n.ml.elementAt(i).i.s + " at line " + n.ml.elementAt(i).i.line + ", character " + n.ml.elementAt(i).i.col);
 		}
 		//System.err.println("About to add method " + n.ml.elementAt(i).i.s);
-		currentNode.getData().put(n.ml.elementAt(i).i.s, "method");
+        temp = new ArrayList<>();
+        temp.add("method");
+		currentNode.getData().put(n.ml.elementAt(i).i.s, temp);
 	}
     for ( int i = 0; i < n.ml.size(); i++ ) {
         n.ml.elementAt(i).accept(this);
@@ -95,7 +104,9 @@ public class BuildSymbolTableVisitor implements Visitor {
     if(currentNode.getData().containsKey(n.i.s)){
 		System.err.println("Multiply defined identifier " + n.i.s + " at line " + n.i.line + ", character " + n.i.col);
 	}
-    currentNode.getData().put(n.i.s, "class");
+    temp = new ArrayList<>();
+    temp.add("class");
+    currentNode.getData().put(n.i.s, temp);
     n.i.accept(this);
     n.j.accept(this);
 	
@@ -113,7 +124,9 @@ public class BuildSymbolTableVisitor implements Visitor {
 			System.err.println("Multiply defined identifier " + n.ml.elementAt(i).i.s + " at line " + n.ml.elementAt(i).i.line + ", character " + n.ml.elementAt(i).i.col);
 		}
 		//System.err.println("About to add method " + n.ml.elementAt(i).i.s);
-		currentNode.getData().put(n.ml.elementAt(i).i.s, "method");
+        temp = new ArrayList<>();
+        temp.add("method");
+		currentNode.getData().put(n.ml.elementAt(i).i.s, temp);
 	}
     for ( int i = 0; i < n.ml.size(); i++ ) {
         n.ml.elementAt(i).accept(this);
@@ -179,26 +192,38 @@ public class BuildSymbolTableVisitor implements Visitor {
     if(currentNode.parentsContains(n.i.s)){
 		System.err.println("Multiply defined identifier " + n.i.s + " at line " + n.i.line + ", character " + n.i.col);
 	}
+    if(currentNode == null) System.err.println("curentNode is null");
+    if(currentNode.params == null) System.err.println("curentNode.params is null");
+    if(n.i.s == null) System.err.println("n.i.s is null");
+    currentNode.params.add(n.i.s);
     curIden = n.i.s;
     n.t.accept(this);
     n.i.accept(this);
   }
 
   public void visit(IntArrayType n) {
-	currentNode.getData().put(curIden, "intArr");
+    temp = new ArrayList<>();
+    temp.add("intArr");
+	currentNode.getData().put(curIden, temp);
   }
 
   public void visit(BooleanType n) {
-	currentNode.getData().put(curIden, "boolean");
+    temp = new ArrayList<>();
+    temp.add("boolean");
+	currentNode.getData().put(curIden, temp);
   }
 
   public void visit(IntegerType n) {
-	currentNode.getData().put(curIden, "int");
+    temp = new ArrayList<>();
+    temp.add("int");
+	currentNode.getData().put(curIden, temp);
   }
 
   // String s;
   public void visit(IdentifierType n) {
-	currentNode.getData().put(curIden, n.s);
+    temp = new ArrayList<>();
+    temp.add(n.s);
+	currentNode.getData().put(curIden, temp);
   }
 
   // StatementList sl;

@@ -6,14 +6,15 @@ import java.util.ArrayList;
 public class Node {
 	protected String name;
 	protected String type;
-    protected HashMap<String, String> data;
+    protected HashMap<String, ArrayList<String>> data;
     protected Node parent;
     protected ArrayList<Node> children;
+    protected ArrayList<String> params = new ArrayList<>();
 		
     public Node(String nodeName){
 		name = nodeName;
 		type = null;
-		data = new HashMap<String, String>();
+		data = new HashMap<String, ArrayList<String>>();
 		parent = null;
 		children = new ArrayList<Node>();
 	}
@@ -21,7 +22,7 @@ public class Node {
 	public Node(String nodeName, Node nodeParent){
 		name = nodeName;
 		type = null;
-		data = new HashMap<String, String>();
+		data = new HashMap<String, ArrayList<String>>();
 		parent = nodeParent;
 		children = new ArrayList<Node>();
 	}
@@ -29,12 +30,12 @@ public class Node {
 	public Node(String nodeName, String nodeType, Node nodeParent){
 		name = nodeName;
 		type = nodeType;
-		data = new HashMap<String, String>();
+		data = new HashMap<String, ArrayList<String>>();
 		parent = nodeParent;
 		children = new ArrayList<Node>();
 	}
 		
-	public HashMap<String, String> getData(){
+	public HashMap<String, ArrayList<String>> getData(){
 		return data;
 	}
 	
@@ -53,6 +54,10 @@ public class Node {
 	public ArrayList<Node> getChildren(){
 		return children;
 	}
+    
+    public ArrayList<String> getParams(){
+        return params;
+    }
 	
 	public boolean addChild(Node child){
 		return children.add(child);

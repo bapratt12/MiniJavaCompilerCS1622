@@ -132,7 +132,7 @@ public class TypeCheckVisitor implements TypeVisitor {
   // String s;
   public Type visit(IdentifierType n) {
 	Node node = currentNode.parentsSearch(n.s);
-	String type = node.getData().get(n.s);
+	String type = node.getData().get(n.s).get(0);
 	if(type.equals("boolean")){
 		return new BooleanType();
 	}
@@ -370,7 +370,7 @@ public class TypeCheckVisitor implements TypeVisitor {
     Node node = currentNode.parentsSearch(n.s);
 	String type = null;
 	if(node != null){
-		type = node.getData().get(n.s);
+		type = node.getData().get(n.s).get(0);
 	}
 	else{
 		node = symbolTable.search(n.s, symbolTable.getRoot());
@@ -432,7 +432,7 @@ public class TypeCheckVisitor implements TypeVisitor {
 	if(node == null){
 		return new IdentifierType(n.s, n.line, n.col);
 	}
-	String type = node.getData().get(n.s);
+	String type = node.getData().get(n.s).get(0);
 	if(type.equals("boolean")){
 		return new BooleanType(n.line, n.col);
 	}

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 public class Tree {
     private Node root;
 
-    public Tree(HashMap<String, String> rootData) {
+    public Tree(HashMap<String, ArrayList<String>> rootData) {
         root = new Node("root");
         root.data = rootData;
         root.children = new ArrayList<Node>();

@@ -38,8 +38,13 @@ public class IRVisitor implements Visitor {
    // include 'this' as a param when calling from a non-static method
    private boolean inStatic = false;
 
+   // optimize
+   private boolean opt;
+
    // constructor
-   public IRVisitor() {
+   public IRVisitor(boolean optFlag) {
+      opt = optFlag;
+
       tempVar = 0;
       IR = new ArrayList<Quadruple>();
       labels = new HashMap<Integer, String>();
@@ -57,7 +62,6 @@ public class IRVisitor implements Visitor {
    // MainClass m;
    // ClassDeclList cl;
    public void visit(Program n) {
-      System.out.println("program");
       n.m.accept(this);
       for(int i = 0; i < n.cl.size(); i++) {
          n.cl.elementAt(i).accept(this);
@@ -67,13 +71,10 @@ public class IRVisitor implements Visitor {
    // Identifier i1,i2;
    // Statement s;
    public void visit(MainClass n) {
-      System.out.println("mainclass");
       labels.put(0, "main");
-      IR.add(new Quadruple("LABEL", "", "", "main:"));
       inStatic = true;
       n.i1.accept(this); n.i2.accept(this);
       n.s.accept(this);
-      IR.add(new Quadruple("END MAIN", "", "", ""));
       inStatic = false;
    }
 
@@ -81,7 +82,6 @@ public class IRVisitor implements Visitor {
    // VarDeclList vl;
    // MethodDeclList ml;
    public void visit(ClassDeclSimple n) {
-      System.out.println("classdeclsimple");
       n.i.accept(this);
       for(int i = 0; i < n.vl.size(); i++) {
          n.vl.elementAt(i).accept(this);
@@ -96,7 +96,6 @@ public class IRVisitor implements Visitor {
    // VarDeclList vl;
    // MethodDeclList ml;
    public void visit(ClassDeclExtends n) {
-      System.out.println("classdeclextends");
       n.i.accept(this); n.j.accept(this);
       for(int i = 0; i < n.vl.size(); i++) {
          n.vl.elementAt(i).accept(this);
@@ -109,7 +108,6 @@ public class IRVisitor implements Visitor {
    // Type t;
    // Identifier i;
    public void visit(VarDecl n) {
-      System.out.println("vardecl");
       n.t.accept(this);
       n.i.accept(this);
    }
@@ -121,11 +119,9 @@ public class IRVisitor implements Visitor {
    // StatementList sl;
    // Exp e;
    public void visit(MethodDecl n) {
-      System.out.println("methoddecl");
       n.t.accept(this);
       n.i.accept(this);
       labels.put(IR.size(), n.i.s);
-      IR.add(new Quadruple("LABEL", "", "", n.i.s + ":"));
       for(int i = 0; i < n.fl.size(); i++) {
          n.fl.elementAt(i).accept(this);
       }
@@ -151,31 +147,25 @@ public class IRVisitor implements Visitor {
    // Type t;
    // Identifier i;
    public void visit(Formal n) {
-      System.out.println("formal");
       n.t.accept(this);
       n.i.accept(this);
    }
 
    public void visit(IntArrayType n) {
-      System.out.println("intarraytype");
    }
 
    public void visit(BooleanType n) {
-      System.out.println("booleantype");
    }
 
    public void visit(IntegerType n) {
-      System.out.println("integertype");
    }
 
    // String s;
    public void visit(IdentifierType n) {
-      System.out.println("identifiertype");
    }
 
    // StatementList sl;
    public void visit(Block n) {
-      System.out.println("block");
       for(int i = 0; i < n.sl.size(); i++) {
          n.sl.elementAt(i).accept(this);
       }
@@ -184,8 +174,6 @@ public class IRVisitor implements Visitor {
    // Exp e;
    // Statement s1,s2;
    public void visit(If n) {
-      System.out.println("if");
-
       String labelFalse = "L"+(labelVar++);
       if(n.e instanceof IdentifierExp || n.e instanceof True || n.e instanceof False) {
          IR.add(new Quadruple("IFFALSE", n.e, "", labelFalse));
@@ -201,20 +189,15 @@ public class IRVisitor implements Visitor {
       IR.add(new Quadruple("GOTO", "", "", labelTrue));
 
       labels.put(IR.size(), labelFalse);
-      IR.add(new Quadruple("LABEL", "", "", labelFalse + ":"));
       n.s2.accept(this);
       labels.put(IR.size(), labelTrue);
-      IR.add(new Quadruple("LABEL", "", "", labelTrue + ":"));
    }
 
    // Exp e;
    // Statement s;
    public void visit(While n) {
-      System.out.println("while");
-      
       String labelLoop = "L"+(labelVar++);
       labels.put(IR.size(), labelLoop);
-      IR.add(new Quadruple("LABEL", "", "", labelLoop + ":"));
       Quadruple q;
       if(n.e instanceof IdentifierExp || n.e instanceof True || n.e instanceof False) {
          q = new Quadruple("IFFALSE", n.e, "", "");
@@ -232,13 +215,10 @@ public class IRVisitor implements Visitor {
 
       IR.add(new Quadruple("GOTO", "", "", labelLoop));
       labels.put(IR.size(), labelBreak);
-      IR.add(new Quadruple("LABEL", "", "", labelBreak + ":"));
    }
 
    // Exp e;
    public void visit(Print n) {
-      System.out.println("print");
-
       if(n.e instanceof IntegerLiteral
          || n.e instanceof True || n.e instanceof False) {
          IR.add(new Quadruple("PARAM", "", "", n.e));
@@ -248,14 +228,12 @@ public class IRVisitor implements Visitor {
          n.e.accept(this);
          IR.add(q);
       }
-      IR.add(new Quadruple("CALL", "_system_out_println", "1", ""));
+      IR.add(new Quadruple("CALL", "print", "1", ""));
    }
 
    // Identifier i;
    // Exp e;
    public void visit(Assign n) {
-      System.out.println("assign");
-
       quad = new Quadruple("", "", "", n.i);
       if(n.e instanceof IdentifierExp || n.e instanceof IntegerLiteral 
          || n.e instanceof True || n.e instanceof False) {
@@ -270,8 +248,6 @@ public class IRVisitor implements Visitor {
    // Identifier i;
    // Exp e1,e2;
    public void visit(ArrayAssign n) {
-      System.out.println("arrayassign");
-
       Quadruple q = new Quadruple("[]=", "", "", n.i);
 
       if(n.e1 instanceof IdentifierExp || n.e1 instanceof IntegerLiteral) {
@@ -295,7 +271,6 @@ public class IRVisitor implements Visitor {
 
    // Exp e1,e2;
    public void visit(And n) {
-      System.out.println("and");
       Quadruple q = quad;
       q.op = "&&";
 
@@ -322,7 +297,6 @@ public class IRVisitor implements Visitor {
 
    // Exp e1,e2;
    public void visit(LessThan n) {
-      System.out.println("lessthan");
       Quadruple q = quad;
       q.op = "<";
 
@@ -347,7 +321,6 @@ public class IRVisitor implements Visitor {
 
    // Exp e1,e2;
    public void visit(Plus n) {
-      System.out.println("plus");
       Quadruple q = quad;
       q.op = "+";
 
@@ -372,7 +345,6 @@ public class IRVisitor implements Visitor {
 
    // Exp e1,e2;
    public void visit(Minus n) {
-      System.out.println("minus");
       Quadruple q = quad;
       q.op = "-";
 
@@ -397,7 +369,6 @@ public class IRVisitor implements Visitor {
 
    // Exp e1,e2;
    public void visit(Times n) {
-      System.out.println("times");
       Quadruple q = quad;
       q.op = "*";
 
@@ -422,8 +393,6 @@ public class IRVisitor implements Visitor {
 
    // Exp e1,e2;
    public void visit(ArrayLookup n) {
-      System.out.println("arraylookup");
-
       Quadruple q = quad;
       q.op = "=[]";
       if(n.e1 instanceof IdentifierExp) {
@@ -443,8 +412,6 @@ public class IRVisitor implements Visitor {
 
    // Exp e;
    public void visit(ArrayLength n) {
-      System.out.println("arraylength");
-
       quad.op = "length";
       quad.arg1 = n.e;
       IR.add(quad);
@@ -454,8 +421,6 @@ public class IRVisitor implements Visitor {
    // Identifier i;
    // ExpList el;
    public void visit(Call n) {
-      System.out.println("call");
-
       Quadruple q = quad;
       q.op = "CALL";
       q.arg1 = n.i;
@@ -479,33 +444,25 @@ public class IRVisitor implements Visitor {
 
    // int i;
    public void visit(IntegerLiteral n) {
-      System.out.println("integerliteral");
    }
 
    public void visit(True n) {
-      System.out.println("true");
    }
 
    public void visit(False n) {
-      System.out.println("false");
    }
 
    // String s;
    public void visit(IdentifierExp n) {
-      System.out.println("identifierexp");
    }
 
    public void visit(This n) {
-      System.out.println("this");
-
       quad.result = "THIS";
       IR.add(quad);
    }
 
    // Exp e;
    public void visit(NewArray n) {
-      System.out.println("newarray");
-
       Quadruple q = quad;
       q.op = "NEW";
       q.arg1 = "int";
@@ -523,12 +480,10 @@ public class IRVisitor implements Visitor {
 
    // Identifier i;
    public void visit(NewObject n) {
-      System.out.println("newobject");
    }
 
    // Exp e;
    public void visit(Not n) {
-      System.out.println("not");
       Quadruple q = quad;
       q.op = "!";
 
@@ -546,7 +501,186 @@ public class IRVisitor implements Visitor {
 
    // String s;
    public void visit(Identifier n) {
-      System.out.println("identifier");
+   }
+
+   // generates IR and labels
+   // optimizes if that's what you're into
+   public void start(Program root) {
+      // accept root node
+      root.accept(this);
+
+      // optimize
+      if(opt) {
+         // keep a list of instructions to be removed
+         ArrayList<Quadruple> toRemove = new ArrayList<>();
+         Map<Integer, Integer> moveLabels = new HashMap<>();
+
+         // check each instruction
+         for(int i = 0; i < IR.size(); i++) {
+            Quadruple q = IR.get(i);
+            
+            /*
+             * constant folding
+             *
+             * if a binary operation is performed on two constants,
+             * compute the value now to aovid doing so at runtime
+             */
+            boolean arg1Constant = q.arg1 instanceof IntegerLiteral;
+            boolean arg2Constant = q.arg2 instanceof IntegerLiteral;
+
+            Object name = null;
+            Object value = null;
+            if(arg1Constant && arg2Constant) {
+               if(q.op.equals("+")) {
+                  q.op = ":=";
+                  q.arg1 = ((IntegerLiteral)q.arg1).i + ((IntegerLiteral)q.arg2).i;
+                  q.arg2 = "";
+
+                  name = (q.result instanceof Identifier) ? ((Identifier)q.result).s : q.result;
+                  value = q.arg1;
+               } else if(q.op.equals("-")) {
+                  q.op = ":=";
+                  q.arg1 = ((IntegerLiteral)q.arg1).i - ((IntegerLiteral)q.arg2).i;
+                  q.arg2 = "";
+
+                  name = (q.result instanceof Identifier) ? ((Identifier)q.result).s : q.result;
+                  value = q.arg1;
+               } else if(q.op.equals("*")) {
+                  q.op = ":=";
+                  q.arg1 = ((IntegerLiteral)q.arg1).i * ((IntegerLiteral)q.arg2).i;
+                  q.arg2 = "";
+
+                  name = (q.result instanceof Identifier) ? ((Identifier)q.result).s : q.result;
+                  value = q.arg1;
+               } else if(q.op.equals("<")) {
+                  q.op = ":=";
+                  q.arg1 = ((IntegerLiteral)q.arg1).i < ((IntegerLiteral)q.arg2).i;
+                  q.arg2 = "";
+
+                  name = (q.result instanceof Identifier) ? ((Identifier)q.result).s : q.result;
+                  value = q.arg1;
+               }
+
+               // if a constant expression has been encountered, remove it
+               if(name != null) {
+                  toRemove.add(q);
+
+                  for(int line : labels.keySet()) {
+                     if(line >= i) {
+                        if(!moveLabels.containsKey(line)) {
+                           moveLabels.put(line, 0);
+                        }
+                        moveLabels.put(line, moveLabels.get(line)+1);
+                     }
+                  }
+               }
+
+               // replace this variable with its value in all future uses until next assignment
+               for(int j = i+1; j < IR.size(); j++) {
+                  Quadruple n = IR.get(j);
+
+                  Object r = (n.result instanceof Identifier) ? ((Identifier)n.result).s : n.result;
+                  if(r.equals(name)) {
+                     break;
+                  }
+
+                  Object a1 = (n.arg1 instanceof IdentifierExp) ? ((IdentifierExp)n.arg1).s : n.arg1;
+                  if(a1.equals(name)) {
+                     n.arg1 = value;
+                  }
+
+                  Object a2 = (n.arg2 instanceof IdentifierExp) ? ((IdentifierExp)n.arg2).s : n.arg2;
+                  if(a2.equals(name)) {
+                     n.arg2 = value;
+                  }
+               }
+            }
+
+            /*
+             * algebraic simplification
+             *
+             * alter or remove any algebraic operations that will have no affect
+             */
+            Object constant = null;
+            Object variable = null;
+            if(arg1Constant && !arg2Constant) {
+               constant = q.arg1;
+               variable = q.arg2;
+            } else if(!arg1Constant && arg2Constant) {
+               constant = q.arg2;
+               variable = q.arg1;
+            }
+
+            if(constant != null) {
+               // track if a change has been made
+               boolean changed = false;
+               if(((IntegerLiteral)constant).i == 1 && q.op.equals("*")) {
+                  // x * 1 || 1 * x
+                  q.op = ":=";
+                  constant = "";
+                  q.arg1 = variable;
+                  changed = true;
+               } else if(((IntegerLiteral)constant).i == 0 && q.op.equals("+")) {
+                  // x + 0 || 0 + x
+                  q.op = ":=";
+                  constant = "";
+                  q.arg1 = variable;
+                  changed = true;
+               } else if(((IntegerLiteral)constant).i == 0 && q.op.equals("-")) {
+                  // x - 0
+                  q.op = ":=";
+                  constant = "";
+                  q.arg1 = variable;
+                  changed = true;
+               }
+
+               // if the instruction is now x = x, remove it
+               // must also fix all labels
+               if(changed) {
+                  String a1 = "";
+                  if(q.arg1 instanceof Identifier) {
+                     a1 = ((Identifier)q.arg1).s;
+                  } else if(q.arg1 instanceof IdentifierExp) {
+                     a1 = ((IdentifierExp)q.arg1).s;
+                  }
+
+                  String r = "";
+                  if(q.result instanceof Identifier) {
+                     r = ((Identifier)q.result).s;
+                  } else if(q.result instanceof IdentifierExp) {
+                     r = ((IdentifierExp)q.result).s;
+                  }
+
+                  if(a1.equals(r)) {
+                     toRemove.add(q);
+
+                     for(int line : labels.keySet()) {
+                        if(line >= i) {
+                           if(!moveLabels.containsKey(line)) {
+                              moveLabels.put(line, 0);
+                           }
+                           moveLabels.put(line, moveLabels.get(line)+1);
+                        }
+                     }
+                  }
+               }
+            }
+         }
+
+         // remove instructions
+         for(int i = 0; i < toRemove.size(); i++) {
+            IR.remove(toRemove.get(i));
+         }
+
+         // fix labels
+         for(int i : moveLabels.keySet()) {
+            int newLine = i - moveLabels.get(i);
+            String label = labels.get(i);
+
+            labels.remove(i);
+            labels.put(newLine, label);
+         }
+      }
    }
 
    public static void main(String args[]) {
@@ -563,10 +697,15 @@ public class IRVisitor implements Visitor {
          parse_tree = parser.parse();
          root = (Program) parse_tree.value;
 
-         visitor = new IRVisitor();
-         root.accept(visitor);
+         boolean opt = false;
+         if(args.length > 1 && args[1].equals("-O1")) {
+            opt = true;
+         }
 
-         System.out.println("\n~~~~~~~~~IR~~~~~~~~~");
+         visitor = new IRVisitor(opt);
+         visitor.start(root);
+
+         System.out.println();
          for(int i = 0; i < visitor.IR.size(); i++) {
             String label = visitor.labels.get(i);
 
@@ -576,6 +715,7 @@ public class IRVisitor implements Visitor {
                System.out.println("        " + visitor.IR.get(i));
             }
          }
+         System.out.println();
 
       } catch (IOException e) {
          System.err.println("Could not open file: " + args[0]);

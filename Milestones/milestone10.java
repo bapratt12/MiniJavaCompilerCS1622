@@ -9,28 +9,23 @@ class Test2 {
       int a;
       int b;
       int c;
-      int x;
-      int y;
-      int z ;
-      boolean q;
+
+      a = 0;
+      b = 0;
+      c = 0;
 
       // algebraic simplification
-      x = 1 * x;  // removed
-      x = x + 0;  // removed
-      x = x - 0;  // removed
+      b = 1 * b;  // removed
+      b = b + 0;  // removed
+      b = b - 0;  // removed
 
-      y = 1 * x;  // y := x
-      y = x + 0;  // y := x
-      y = x - 0;  // y := x
+      a = 1 * b;  // a := b
+      a = b + 0;  // a := b
+      a = b - 0;  // a := b
 
       // constant folding
-      x = 1 + 1;  // removed
-      y = x;      // y := 2
-
-      x = 0;
-      while(x < 5) {
-         x = x + 1;
-      }
+      c = 1 + 1;  // removed
+      y = c;      // y := 2
 
       return y;
    }

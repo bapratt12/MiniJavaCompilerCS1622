@@ -560,7 +560,8 @@ public class IRVisitor implements Visitor {
                   value = q.arg1;
                } else if(q.op.equals("<")) {
                   q.op = ":=";
-                  q.arg1 = ((IntegerLiteral)q.arg1).i < ((IntegerLiteral)q.arg2).i;
+                  boolean result = ((IntegerLiteral)q.arg1).i < ((IntegerLiteral)q.arg2).i;
+                  q.arg1 = (result) ? new True(0, 0) : new False(0, 0);
                   q.arg2 = "";
 
                   name = (q.result instanceof Identifier) ? ((Identifier)q.result).s : q.result;
@@ -585,9 +586,21 @@ public class IRVisitor implements Visitor {
                for(int j = i+1; j < IR.size(); j++) {
                   Quadruple n = IR.get(j);
 
-                  Object r = (n.result instanceof Identifier) ? ((Identifier)n.result).s : n.result;
+                  Object r;
+                  if(n.result instanceof Identifier) {
+                     r = ((Identifier)n.result).s;
+                  } else if(n.result instanceof IdentifierExp) {
+                     r = ((IdentifierExp)n.result).s;
+                  } else {
+                     r = n.result;
+                  }
+
                   if(r.equals(name)) {
-                     break;
+                     if(n.op.equals("RETURN")) {
+                        n.result = value;
+                     } else {
+                        break;
+                     }
                   }
 
                   Object a1 = (n.arg1 instanceof IdentifierExp) ? ((IdentifierExp)n.arg1).s : n.arg1;

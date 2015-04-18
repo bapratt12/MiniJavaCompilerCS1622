@@ -8,9 +8,9 @@ class Test2 {
         //Arbitrary straight-line code
         int x;
         int j;
-        x = 1+1;
-        j = 4 - x;
-        y = x + j;
-        return y;
+        x = 1+1;    // 2
+        j = 4 - x;  // 2
+        y = x + j;  // 4
+        return y;   // return 4
     }
 }

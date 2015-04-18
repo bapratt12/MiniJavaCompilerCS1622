@@ -31,9 +31,13 @@ public class MiniJavaDriver{
 			root.accept(visitor);
 
             // print IR
+            System.out.println();
             for(Quadruple q : visitor.IR) {
                 System.out.println(q);
             }
+            
+            MiniJavaCodeGen code = new MiniJavaCodeGen(symbolTable, visitor.IR);
+            code.generate();
         }
         catch(IOException e){
             System.err.println("Unable to open file: " + args[0]);

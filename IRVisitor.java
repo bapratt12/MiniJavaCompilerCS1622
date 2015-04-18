@@ -596,7 +596,7 @@ public class IRVisitor implements Visitor {
                   }
 
                   if(r.equals(name)) {
-                     if(n.op.equals("RETURN")) {
+                     if(n.op.equals("PARAM") || n.op.equals("RETURN")) {
                         n.result = value;
                      } else {
                         break;

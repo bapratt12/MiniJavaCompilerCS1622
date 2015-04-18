@@ -14,8 +14,18 @@ class Test2 {
       int z ;
       boolean q;
 
-      x = 1;
-      y = x;
+      // algebraic simplification
+      x = 1 * x;  // removed
+      x = x + 0;  // removed
+      x = x - 0;  // removed
+
+      y = 1 * x;  // y := x
+      y = x + 0;  // y := x
+      y = x - 0;  // y := x
+
+      // constant folding
+      x = 1 + 1;  // removed
+      y = x;      // y := 2
 
       x = 0;
       while(x < 5) {

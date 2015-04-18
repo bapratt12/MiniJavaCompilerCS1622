@@ -12,7 +12,6 @@ class Test2 {
 
       a = 0;
       b = 0;
-      c = 0;
 
       // algebraic simplification
       b = 1 * b;  // removed

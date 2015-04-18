@@ -72,9 +72,11 @@ public class IRVisitor implements Visitor {
    // Statement s;
    public void visit(MainClass n) {
       labels.put(0, "main");
+      IR.add(new Quadruple("LABEL", "", "", "main:"));
       inStatic = true;
       n.i1.accept(this); n.i2.accept(this);
       n.s.accept(this);
+      IR.add(new Quadruple("END MAIN", "", "", ""));
       inStatic = false;
    }
 
@@ -122,6 +124,7 @@ public class IRVisitor implements Visitor {
       n.t.accept(this);
       n.i.accept(this);
       labels.put(IR.size(), n.i.s);
+      IR.add(new Quadruple("LABEL", "", "", n.i.s + ":"));
       for(int i = 0; i < n.fl.size(); i++) {
          n.fl.elementAt(i).accept(this);
       }
@@ -228,8 +231,7 @@ public class IRVisitor implements Visitor {
          n.e.accept(this);
          IR.add(q);
       }
-      IR.add(new Quadruple("CALL", "print", "1", ""));
-   }
+      IR.add(new Quadruple("CALL", "_system_out_println", "1", ""));   }
 
    // Identifier i;
    // Exp e;

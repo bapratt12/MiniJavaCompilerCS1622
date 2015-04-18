@@ -539,21 +539,21 @@ public class IRVisitor implements Visitor {
             if(arg1Constant && arg2Constant) {
                if(q.op.equals("+")) {
                   q.op = ":=";
-                  q.arg1 = ((IntegerLiteral)q.arg1).i + ((IntegerLiteral)q.arg2).i;
+                  q.arg1 = new IntegerLiteral(((IntegerLiteral)q.arg1).i + ((IntegerLiteral)q.arg2).i, 0, 0);
                   q.arg2 = "";
 
                   name = (q.result instanceof Identifier) ? ((Identifier)q.result).s : q.result;
                   value = q.arg1;
                } else if(q.op.equals("-")) {
                   q.op = ":=";
-                  q.arg1 = ((IntegerLiteral)q.arg1).i - ((IntegerLiteral)q.arg2).i;
+                  q.arg1 = new IntegerLiteral(((IntegerLiteral)q.arg1).i - ((IntegerLiteral)q.arg2).i, 0, 0);
                   q.arg2 = "";
 
                   name = (q.result instanceof Identifier) ? ((Identifier)q.result).s : q.result;
                   value = q.arg1;
                } else if(q.op.equals("*")) {
                   q.op = ":=";
-                  q.arg1 = ((IntegerLiteral)q.arg1).i * ((IntegerLiteral)q.arg2).i;
+                  q.arg1 = new IntegerLiteral(((IntegerLiteral)q.arg1).i * ((IntegerLiteral)q.arg2).i, 0, 0);
                   q.arg2 = "";
 
                   name = (q.result instanceof Identifier) ? ((Identifier)q.result).s : q.result;

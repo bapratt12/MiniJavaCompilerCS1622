@@ -73,10 +73,8 @@ public class Quadruple {
          str = op + " " + a1 + " GOTO " + r;
       } else if(op.equals("GOTO")) {
          str = "GOTO " + r;
-      } else if(op.equals("LABEL")) {
-         str = "\n" + r;
-      } else if(op.equals("END MAIN")){
-         str = op;
+      } else {
+         str = op + " " + a1 + " " + a2 + " " + r;
       }
 
       return str;

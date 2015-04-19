@@ -17,9 +17,6 @@ class Test2 {
         else {
             y = j;
         }
-        while(y < 10){
-            y = y + 1;
-        }
         return y;
     }
 }

@@ -72,7 +72,7 @@ public class IRVisitor implements Visitor {
    // Statement s;
    public void visit(MainClass n) {
       labels.put(0, "main");
-      IR.add(new Quadruple("LABEL", "", "", "main:"));
+      //IR.add(new Quadruple("LABEL", "", "", "main:"));
       inStatic = true;
       n.i1.accept(this); n.i2.accept(this);
       n.s.accept(this);

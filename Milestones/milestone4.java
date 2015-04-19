@@ -9,8 +9,13 @@ class Test2 {
         int x;
         int j;
         x = 1+1;    // 2
-        j = 4 - x;  // 2
-        y = x + j;  // 4
-        return y;   // return 4
+        j = new Test2().Hello(5);  // 7
+        y = x + j;  // 9
+        return y;   // return 9
+    }
+    
+    public int Hello(int x){
+        x = x + 2;
+        return x;
     }
 }

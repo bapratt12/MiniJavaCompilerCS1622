@@ -56,7 +56,7 @@ public class MiniJavaCodeGen {
             e.printStackTrace();
         }
         writer.println(".text");
-        for(Quadruple q: IR){
+        for(Quadruple q : IR){
             if(q.op.equals(":=")){
                 if(q.arg1 instanceof IntegerLiteral){
                     IntegerLiteral il = (IntegerLiteral) q.arg1;
@@ -88,7 +88,7 @@ public class MiniJavaCodeGen {
                     IntegerLiteral il = (IntegerLiteral) q.result;
                     writer.println("li " + args.get(argsCounter++) + " " + il.i);
                 }
-                 else if(q.result instanceof True){
+                else if(q.result instanceof True){
                     writer.println("li " + args.get(argsCounter++) + " 1");
                 }
                 else if(q.result instanceof False){
@@ -263,7 +263,6 @@ public class MiniJavaCodeGen {
                     writer.println("addi " + node.getData().get(q.result.toString()).get(1) + " " + genRegs.get(regsCounter) + " -" + il2.i);
                 }
                 else if(q.arg2 instanceof IntegerLiteral){
-                    System.err.println("arg1 is " + q.arg1.toString());
                     Node node1 = checkOrAdd(q.arg1.toString());
                     Node node2 = checkOrAdd(q.result.toString());
                     IntegerLiteral il = (IntegerLiteral) q.arg2;
@@ -338,16 +337,82 @@ public class MiniJavaCodeGen {
                 }
             } 
             else if(q.op.equals("NEW")) {
-            
+                Node node = checkOrAdd(q.result.toString());
+                if(q.arg1.equals("int")) {
+                    // new int array
+                    writer.println("addi $sp $sp -16");
+                    writer.println("sw $ra 12($sp)");
+                    writer.println("sw $a0 8($sp)");
+                    writer.println("sw $t0 4($sp)");
+                    writer.println("sw $t1 0($sp)");
+                    if(q.arg2 instanceof IntegerLiteral) {
+                        IntegerLiteral il = (IntegerLiteral) q.arg2;
+                        writer.println("li $a0 " + (4*il.i));
+                        writer.println("jal _new_array");
+                    } else {
+                        Node node1 = checkOrAdd(q.arg2.toString());
+                        writer.println("sll $a0 " + node1.getData().get(q.arg2.toString()).get(1) + " 2");
+                        writer.println("jal _new_array");
+                    }
+                    writer.println("lw $t1 0($sp)");
+                    writer.println("lw $t0 4($sp)");
+                    writer.println("lw $a0 8($sp)");
+                    writer.println("lw $ra 12($sp)");
+                    writer.println("addi $sp $sp 16");
+                    writer.println("move " + node.getData().get(q.result.toString()).get(1) + " $v0");
+                } else {
+                    // new object
+                }
             }
             else if(q.op.equals("length")){
-            
+                // array length
+                Node node = checkOrAdd(q.result.toString());
+                if(q.arg1 instanceof IdentifierExp) {
+                    writer.println("lw " + node.getData().get(q.result.toString()).get(1) + " 0(" + node.getData().get(q.arg1.toString()).get(1) + ")");
+                }
             } 
             else if(q.op.equals("=[]")) {
-            
+                // array lookup
+                Node node = checkOrAdd(q.result.toString());
+                if(q.arg2 instanceof IntegerLiteral) {
+                    int index = ((IntegerLiteral)q.arg2).i;
+                    writer.println("lw " + node.getData().get(q.result.toString()).get(1) + " " + 4*(index+1) + "(" + node.getData().get(q.arg1.toString()).get(1) + ")");
+                } else {
+                    Node node2 = checkOrAdd(q.arg2.toString());
+                    writer.println("addi " + genRegs.get(regsCounter) + " " + node2.getData().get(q.arg2.toString()).get(1) + " 1");
+                    writer.println("sll " + genRegs.get(regsCounter) + " " + genRegs.get(regsCounter) + " 2");
+                    writer.println("add " + genRegs.get(regsCounter) + " " + genRegs.get(regsCounter) + " " + node.getData().get(q.arg1.toString()).get(1));
+                    writer.println("lw " + node.getData().get(q.result.toString()).get(1) + " 0(" + genRegs.get(regsCounter) + ")");
+                }
             } 
             else if(q.op.equals("[]=")) {
-            
+                // array assign
+                Node node = checkOrAdd(q.result.toString());
+                if(q.arg1 instanceof IntegerLiteral && q.arg2 instanceof IntegerLiteral) {
+                    int index = ((IntegerLiteral)q.arg1).i;
+                    int value = ((IntegerLiteral)q.arg2).i;
+                    writer.println("li " + genRegs.get(regsCounter) + " " + value);
+                    writer.println("sw " + genRegs.get(regsCounter) + " " + 4*(index+1) + "(" + node.getData().get(q.result.toString()).get(1) + ")");
+                } else if(q.arg1 instanceof IntegerLiteral) {
+                    int index = ((IntegerLiteral)q.arg1).i;
+                    Node node2 = checkOrAdd(q.arg2.toString());
+                    writer.println("sw " + node2.getData().get(q.arg2.toString()).get(1) + " " + 4*(index+1) + "(" + node.getData().get(q.result.toString()).get(1) + ")");
+                } else if(q.arg2 instanceof IntegerLiteral) {
+                    Node node1 = checkOrAdd(q.arg1.toString());
+                    int value = ((IntegerLiteral)q.arg2).i;
+                    writer.println("li " + genRegs.get(regsCounter) + " " + value);
+                    writer.println("addi " + genRegs.get(regsCounter+1) + " " + node1.getData().get(q.arg1.toString()).get(1) + " 1");
+                    writer.println("sll " + genRegs.get(regsCounter+1) + " " + genRegs.get(regsCounter+1) + " 2");
+                    writer.println("add " + genRegs.get(regsCounter+1) + " " + genRegs.get(regsCounter+1) + " " + node.getData().get(q.result.toString()).get(1));
+                    writer.println("sw " + genRegs.get(regsCounter) + " 0(" + genRegs.get(regsCounter+1) + ")");
+                } else {
+                    Node node1 = checkOrAdd(q.arg1.toString());
+                    Node node2 = checkOrAdd(q.arg2.toString());
+                    writer.println("addi " + genRegs.get(regsCounter) + " " + node1.getData().get(q.arg1.toString()).get(1) + " 1");
+                    writer.println("sll " + genRegs.get(regsCounter) + " " + genRegs.get(regsCounter) + " 2");
+                    writer.println("add " + genRegs.get(regsCounter) + " " + genRegs.get(regsCounter) + " " + node.getData().get(q.result.toString()).get(1));
+                    writer.println("sw " + node2.getData().get(q.arg2.toString()).get(1) + " 0(" + genRegs.get(regsCounter) + ")");
+                }
             } 
             else if(q.op.equals("IFFALSE")) {
                 if(q.arg1 instanceof True){
